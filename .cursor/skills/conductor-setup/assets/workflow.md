@@ -48,7 +48,11 @@ All tasks follow a strict lifecycle:
 9. **Attach Task Summary with Git Notes:**
    - **Step 9.1: Get Commit Hash:** Obtain the hash of the *just-completed commit* (`git log -1 --format="%H"`).
    - **Step 9.2: Draft Note Content:** Create a detailed summary for the completed task. **Shell safety:** Note content MUST NOT contain backticks (`` ` ``) or triple backticks. They break shell quoting. Use plain text descriptions instead of markdown code fences.
-   - **Step 9.3: Attach Note:** Write the note content to a temporary file, then use `git notes add -F <tempfile> <commit_hash>`. Delete the temporary file afterward. This avoids shell quoting issues with special characters.
+   - **Step 9.3: Attach Note:**
+       1. **Create the file first:** Use `echo "NOTE_CONTENT" > temp_note.txt` to create the file
+       2. **Then add the note:** Use `git notes add -F temp_note.txt <commit_hash>`
+       3. **Clean up:** Delete with `rm temp_note.txt`
+       ⚠️ **CRITICAL:** Do NOT assume files exist. You MUST explicitly create them with `echo` before using the `-F` flag. The UI may show "(new)" markers that do NOT mean the file actually exists on disk.
 
 10. **Get and Record Task Commit SHA:**
     - **Step 10.1: Re-read Plan:** You MUST re-read `plan.md` **from disk** before editing. Do NOT rely on cached or in-memory content from earlier in the session — the file changes after every task.
