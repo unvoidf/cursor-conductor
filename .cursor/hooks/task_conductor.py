@@ -68,13 +68,13 @@ def count_tasks(plan_content: str) -> dict:
 
     for line in plan_content.split("\n"):
         stripped = line.strip()
-        if stripped.startswith("- [ ] ") or stripped.startswith("- [ ] "):
+        if stripped.startswith("- [ ] "):
             counts["pending"] += 1
-        elif stripped.startswith("- [~] ") or stripped.startswith("- [~] "):
+        elif stripped.startswith("- [~] "):
             counts["in_progress"] += 1
-        elif stripped.startswith("- [x] ") or stripped.startswith("- [x] "):
+        elif stripped.startswith("- [x] "):
             counts["completed"] += 1
-        elif stripped.startswith("- [-] ") or stripped.startswith("- [-] "):
+        elif stripped.startswith("- [-] "):
             counts["skipped"] += 1
 
     return counts
