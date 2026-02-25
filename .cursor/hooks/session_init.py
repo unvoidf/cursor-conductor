@@ -14,14 +14,19 @@ import os
 from pathlib import Path
 
 
+def exit_with_response(response: dict = None) -> None:
+    """Print the response as JSON and exit."""
+    print(json.dumps(response or {}, ensure_ascii=False))
+    sys.exit(0)
+
+
 def main():
     # Read the hook input from stdin
     try:
         input_data = json.load(sys.stdin)
     except (json.JSONDecodeError, Exception) as e:
         sys.stderr.write(f"[conductor] session_init: Failed to parse input: {e}\n")
-        print(json.dumps({"continue": True}))
-        sys.exit(0)
+        exit_with_response({"continue": True})
 
     # Get the project directory
     project_dir = Path(os.environ.get("CURSOR_PROJECT_DIR", "."))
@@ -39,8 +44,7 @@ def main():
     if not conductor_dir.exists():
         # No conductor setup - pass through silently
         response["env"]["CONDUCTOR_ACTIVE"] = "false"
-        print(json.dumps(response, ensure_ascii=False))
-        sys.exit(0)
+        exit_with_response(response)
 
     # Conductor is present - activate conductor mode
     response["env"]["CONDUCTOR_ACTIVE"] = "true"
@@ -110,8 +114,7 @@ def main():
 
     response["additional_context"] = "\n".join(context_parts)
 
-    print(json.dumps(response, ensure_ascii=False))
-    sys.exit(0)
+    exit_with_response(response)
 
 
 if __name__ == "__main__":

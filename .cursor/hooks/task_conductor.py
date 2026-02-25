@@ -92,49 +92,49 @@ def get_next_pending_task(plan_content: str) -> str | None:
     return None
 
 
+def exit_with_response(response: dict = None) -> None:
+    """Print the response as JSON and exit."""
+    print(json.dumps(response or {}, ensure_ascii=False))
+    sys.exit(0)
+
+
 def main():
     # Read the hook input from stdin
     try:
         input_data = json.load(sys.stdin)
     except (json.JSONDecodeError, Exception) as e:
         sys.stderr.write(f"[conductor] task_conductor: Failed to parse input: {e}\n")
-        print("{}")
-        sys.exit(0)
+        exit_with_response()
 
     status = input_data.get("status", "")
     loop_count = input_data.get("loop_count", 0)
 
     # Only process completed agent runs
     if status != "completed":
-        print("{}")
-        sys.exit(0)
+        exit_with_response()
 
     # Check if conductor mode is active
     conductor_active = os.environ.get("CONDUCTOR_ACTIVE", "false")
     if conductor_active != "true":
-        print("{}")
-        sys.exit(0)
+        exit_with_response()
 
     # Get project directory
     project_dir = Path(os.environ.get("CURSOR_PROJECT_DIR", "."))
     conductor_dir = project_dir / "conductor"
 
     if not conductor_dir.exists():
-        print("{}")
-        sys.exit(0)
+        exit_with_response()
 
     # Find the active track's plan
     plan_path = find_active_track_plan(conductor_dir)
     if not plan_path:
-        print("{}")
-        sys.exit(0)
+        exit_with_response()
 
     # Read and analyze the plan
     try:
         plan_content = plan_path.read_text(encoding="utf-8")
     except Exception:
-        print("{}")
-        sys.exit(0)
+        exit_with_response()
 
     counts = count_tasks(plan_content)
     next_task = get_next_pending_task(plan_content)
@@ -169,13 +169,10 @@ def main():
                 f"mark it [~], implement following the workflow (TDD if applicable), "
                 f"commit, record SHA, mark [x], then move to the next task."
             )
-            response = {"followup_message": followup}
-            print(json.dumps(response, ensure_ascii=False))
-            sys.exit(0)
+            exit_with_response({"followup_message": followup})
 
     # No followup needed
-    print("{}")
-    sys.exit(0)
+    exit_with_response()
 
 
 if __name__ == "__main__":
