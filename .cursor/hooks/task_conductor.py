@@ -12,6 +12,7 @@ import json
 import sys
 import os
 import re
+import tempfile
 from pathlib import Path
 
 
@@ -92,6 +93,33 @@ def get_next_pending_task(plan_content: str) -> str | None:
     return None
 
 
+def is_safe_path(path_str: str, project_dir: Path) -> bool:
+    """
+    Check if the path is safe to read.
+    A path is considered safe if it's a regular file and resides within
+    either the project directory or the system's temporary directory.
+    """
+    try:
+        path = Path(path_str).resolve()
+        project_dir_resolved = project_dir.resolve()
+        temp_dir = Path(tempfile.gettempdir()).resolve()
+
+        # Check if it's a regular file (and not a symlink to a sensitive file,
+        # resolve() already followed symlinks)
+        if not path.is_file():
+            return False
+
+        # Check if it's within project_dir or temp_dir
+        path_str_abs = str(path)
+        if os.path.commonpath([path_str_abs, str(project_dir_resolved)]) == str(project_dir_resolved):
+            return True
+        if os.path.commonpath([path_str_abs, str(temp_dir)]) == str(temp_dir):
+            return True
+    except Exception:
+        return False
+    return False
+
+
 def main():
     # Read the hook input from stdin
     try:
@@ -148,7 +176,7 @@ def main():
         # Also check transcript for conductor-implement context
         transcript_path = input_data.get("transcript_path")
         is_implement_session = False
-        if transcript_path and os.path.exists(transcript_path):
+        if transcript_path and is_safe_path(transcript_path, project_dir):
             try:
                 with open(transcript_path, "r", encoding="utf-8") as f:
                     # Read last portion of transcript to check for conductor context
