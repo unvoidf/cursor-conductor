@@ -18,7 +18,7 @@ def main():
     # Read the hook input from stdin
     try:
         input_data = json.load(sys.stdin)
-    except (json.JSONDecodeError, Exception) as e:
+    except json.JSONDecodeError as e:
         sys.stderr.write(f"[conductor] session_init: Failed to parse input: {e}\n")
         print(json.dumps({"continue": True}))
         sys.exit(0)
